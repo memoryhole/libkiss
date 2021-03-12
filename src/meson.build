@@ -1,3 +1,4 @@
-libkiss = library('libkiss', 'libkiss.c',
-  include_directories: incdir)
+libkiss = library('kiss', 'libkiss.c',
+  include_directories: incdir,
+  install: true)
 

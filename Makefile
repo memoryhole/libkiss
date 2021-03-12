@@ -3,6 +3,9 @@
 all: build
 	ninja -C build
 
+build:
+	meson build
+
 .PHONY: watch
 watch: build
 	while inotifywait -e close_write,moved_to,create src test; do make test; done
@@ -11,8 +14,13 @@ watch: build
 test: build
 	meson test -C build --print-errorlogs --no-stdsplit
 
-build:
-	meson build
+.PHONY: install
+install: build
+	ninja -C build install
+
+.PHONY: uninstall
+uninstall: build
+	ninja -C build uninstall
 
 .PHONY: clean
 clean:
