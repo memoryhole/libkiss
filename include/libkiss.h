@@ -12,14 +12,14 @@ enum special_chars {
 };
 
 enum command_code {
-    data_frame = 0x00,
-    tx_delay = 0x01,
-    p = 0x02,
-    slot_time = 0x03,
-    tx_tail = 0x04,
-    full_duplex = 0x05,
-    set_hardware = 0x06,
-    ret = 0xff,
+    DATA_FRAME = 0x00,
+    TX_DELAY = 0x01,
+    P = 0x02,
+    SLOT_TIME = 0x03,
+    TX_TAIL = 0x04,
+    FULL_DUPLEX = 0x05,
+    SET_HARDWARE = 0x06,
+    RET = 0xff,
 };
 
 enum kiss_parse_state {
@@ -36,10 +36,15 @@ struct command {
 struct kiss_frame {
     uint8_t data[330];
     uint16_t data_size;
+    union Command {
+        struct command details;
+        uint8_t byte;
+    } command;
 
     uint16_t _last_read_offset;
     enum kiss_parse_state _state;
-    bool _init;
+    int16_t _init_offset;
+    bool _init_found;
 };
 
 void kiss_init(struct kiss_frame* frame);
