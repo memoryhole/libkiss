@@ -1,5 +1,5 @@
 # libkiss
-KISS Protocol (Keep It Simple Stupid) parsing library for Amateur Radio
+[KISS Protocol](https://en.wikipedia.org/wiki/KISS_(TNC)) (Keep It Simple Stupid) parsing library for Amateur Radio
 
  * no dynamic memory allocations
  * supports parsing with partial data
