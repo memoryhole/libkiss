@@ -24,7 +24,7 @@ enum command_code {
 
 enum kiss_parse_state {
     CONTINUE,
-    PARTIAL_DONE,
+    DONE_HAS_MORE,
     DONE
 };
 
@@ -45,6 +45,7 @@ struct kiss_frame {
     enum kiss_parse_state _state;
     int16_t _init_offset;
     bool _init_found;
+    bool _escape;
 };
 
 void kiss_init(struct kiss_frame* frame);

@@ -16,7 +16,7 @@ void kiss_init(struct kiss_frame* frame) {
 enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16_t data_size) {
     int i = 0;
 
-    if (frame->_state == PARTIAL_DONE) {
+    if (frame->_state == DONE_HAS_MORE) {
         i = frame->_last_read_offset + 1;
         frame->_last_read_offset = 0;
         frame->_init_found = false;
@@ -43,7 +43,7 @@ enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16
                     frame->_state = DONE;
                     break;
                 } else {
-                    frame->_state = PARTIAL_DONE;
+                    frame->_state = DONE_HAS_MORE;
                     break;
                 }
             } else {
@@ -54,8 +54,25 @@ enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16
             if (frame->_init_offset == i-1 && !frame->data_size) {
                 frame->command.byte = data[i];
             } else {
-                frame->data[frame->data_size] = data[i];
-                frame->data_size += 1;
+                if (data[i] == TFESC) {
+                    if (!frame->_escape) {
+                        frame->_escape = true;
+                    } else {
+                        frame->_escape = false;
+                        frame->data[frame->data_size] = FESC;
+                        frame->data_size += 1;
+                    }
+
+                } else if(frame->_escape && data[i] == TFEND) {
+                    frame->_escape = false;
+                    frame->data[frame->data_size] = FEND;
+                    frame->data_size += 1;
+
+                } else {
+                    frame->_escape = false;
+                    frame->data[frame->data_size] = data[i];
+                    frame->data_size += 1;
+                }
             }
         }
 
