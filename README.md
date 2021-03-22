@@ -71,6 +71,12 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+### Install Build Dependencies
+
+```bash
+sudo apt install build-essential meson ninja-build libcmocka-dev
+```
+
 ### Build
 
 ```bash
