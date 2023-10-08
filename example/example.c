@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 
     enum kiss_parse_state state = CONTINUE;
 
-    for (int i = i; i < data_size; i += 3) {
+    for (int i = 1; i < data_size; i += 3) {
         state = kiss_parse(&frame, data2 + i, 3);
 
         if (DONE == state) {

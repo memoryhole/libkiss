@@ -11,10 +11,21 @@ void kiss_init(struct kiss_frame* frame) {
     frame->_init_found = 0;
     frame->_last_read_offset = 0;
     frame->_state = CONTINUE;
+    frame->error = NONE;
 }
 
-enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16_t data_size) {
-    int i = 0;
+void frame_set_data(struct kiss_frame* frame, uint8_t data) {
+    if (frame->data_size+1 == MAX_DATA_SIZE) {
+        frame->_state = ERROR;
+        frame->error = DATA_TOO_LARGE;
+        return;
+    }
+    frame->data[frame->data_size] = data;
+    frame->data_size += 1;
+}
+
+enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t* data, uint32_t data_size) {
+    uint32_t i = 0;
 
     if (frame->_state == DONE_HAS_MORE) {
         i = frame->_last_read_offset + 1;
@@ -28,7 +39,7 @@ enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16
 
     frame->_state = CONTINUE;
 
-    while (i < data_size) {
+    while (i < data_size && frame->error == NONE) {
         frame->_last_read_offset = i;
 
         if (!frame->_init_found) {
@@ -54,25 +65,24 @@ enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16
             if (frame->_init_offset == i-1 && !frame->data_size) {
                 frame->command.byte = data[i];
             } else {
+
                 if (data[i] == TFESC) {
                     if (!frame->_escape) {
                         frame->_escape = true;
                     } else {
                         frame->_escape = false;
-                        frame->data[frame->data_size] = FESC;
-                        frame->data_size += 1;
+                        frame_set_data(frame, FESC);
                     }
 
                 } else if(frame->_escape && data[i] == TFEND) {
                     frame->_escape = false;
-                    frame->data[frame->data_size] = FEND;
-                    frame->data_size += 1;
+                    frame_set_data(frame, FEND);
 
                 } else {
                     frame->_escape = false;
-                    frame->data[frame->data_size] = data[i];
-                    frame->data_size += 1;
+                    frame_set_data(frame, data[i]);
                 }
+
             }
         }
 

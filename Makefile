@@ -12,7 +12,7 @@ watch: build
 
 .PHONY: test
 test: build
-	meson test -C build --print-errorlogs --no-stdsplit
+	meson test -C build --print-errorlogs --no-stdsplit --verbose
 
 .PHONY: install
 install: build

@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define MAX_DATA_SIZE (1024 * 1024)
+
 enum special_chars {
     FEND = 0xC0,
     FESC = 0xDB,
@@ -23,9 +25,15 @@ enum command_code {
 };
 
 enum kiss_parse_state {
-    CONTINUE,
+    DONE,
     DONE_HAS_MORE,
-    DONE
+    CONTINUE,
+    ERROR,
+};
+
+enum error_code {
+    NONE,
+    DATA_TOO_LARGE
 };
 
 struct command {
@@ -34,21 +42,22 @@ struct command {
 };
 
 struct kiss_frame {
-    uint8_t data[330];
-    uint16_t data_size;
+    uint8_t data[MAX_DATA_SIZE];
+    uint32_t data_size;
     union Command {
         struct command details;
         uint8_t byte;
     } command;
 
-    uint16_t _last_read_offset;
+    uint32_t _last_read_offset;
     enum kiss_parse_state _state;
-    int16_t _init_offset;
+    enum error_code error;
+    uint32_t _init_offset;
     bool _init_found;
     bool _escape;
 };
 
 void kiss_init(struct kiss_frame* frame);
-enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint16_t data_size);
+enum kiss_parse_state kiss_parse(struct kiss_frame* frame, uint8_t *data, uint32_t data_size);
 
 #endif
