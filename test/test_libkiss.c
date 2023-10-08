@@ -3,6 +3,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
+#include <string.h>
 #include "libkiss.h"
 
 static void test_parse_aligned(void** state) {
@@ -96,6 +97,29 @@ static void test_parse_with_escaping_on_edge(void** state) {
     assert_int_equal(frame.command.details.command, DATA_FRAME);
 }
 
+static void test_parse_with_data_size_error(void** state) {
+    (void)state;
+    struct kiss_frame frame;
+    uint8_t data[MAX_DATA_SIZE+3];
+    memset(&data, 0, sizeof(data));
+    data[0] = FEND;
+    data[1] = 0x00;
+    data[MAX_DATA_SIZE+1] = FEND;
+
+    kiss_init(&frame);
+    // Should be ok with the exact max size
+    assert_int_equal(kiss_parse(&frame, data, sizeof(data) / sizeof(uint8_t)), DONE_HAS_MORE);
+
+    // Should fail when exceeding the max size
+    kiss_init(&frame);
+    memset(&data, 0, sizeof(data));
+    data[0] = FEND;
+    data[1] = 0x00;
+    data[MAX_DATA_SIZE+2] = FEND;
+    assert_int_equal(kiss_parse(&frame, data, sizeof(data) / sizeof(uint8_t)), ERROR);
+    assert_int_equal(frame.error, DATA_TOO_LARGE);
+}
+
 int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
@@ -106,6 +130,7 @@ int main(int argc, char **argv) {
         cmocka_unit_test(test_parse_multiple_passes),
         cmocka_unit_test(test_parse_with_escaping),
         cmocka_unit_test(test_parse_with_escaping_on_edge),
+        cmocka_unit_test(test_parse_with_data_size_error),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
